@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>pocket-post</title>
+
+  <!-- Typewriter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --purple-900: #2b0b3a; /* dark purple base */
+      --purple-700: #421049;
+      --accent: #a55af0;     /* brighter purple accent */
+      --light-bg: #ffffff;
+      --light-contrast: #1b0c2a; /* very dark text on light */
+      --dark-bg: #030003;   /* near-black */
+      --dark-contrast: #f6f3ff; /* light text on dark */
+      --pixel-size: 3px;    /* for pixel borders */
+      --transition: 220ms cubic-bezier(.2,.9,.3,1);
+    }
+
+    body {
+      --bg: linear-gradient(180deg, rgba(165,90,240,0.05) 0%, rgba(165,90,240,0.02) 100%), var(--light-bg);
+      --panel-bg: rgba(66,16,73,0.06);
+      --text: var(--light-contrast);
+      --ui-border: rgba(42,10,58,0.7);
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Special Elite', "Courier New", monospace;
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem;
+      transition: background var(--transition), color var(--transition);
+      cursor: url('assets/monster_cursor.png'), auto;
+    }
+
+    .dark body, body.dark {
+      --bg: linear-gradient(180deg, rgba(43,11,58,0.25) 0%, rgba(43,11,58,0.12) 100%), var(--dark-bg);
+      --panel-bg: rgba(165,90,240,0.04);
+      --text: var(--dark-contrast);
+      --ui-border: rgba(165,90,240,0.65);
+    }
+
+    .pixel-ui * {
+      image-rendering: pixelated;
+      -ms-interpolation-mode: nearest-neighbor;
+    }
+
+    .card {
+      width: min(980px, 96vw);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: calc(var(--pixel-size)) solid var(--ui-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow:
+        0 6px 0 0 rgba(42,10,58,0.12),
+        0 12px 24px rgba(16,6,22,0.35);
+      backdrop-filter: blur(2px) saturate(1.2);
+    }
+
+    .top-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .title {
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      font-size:1.25rem;
+      letter-spacing: .02em;
+      color: var(--text);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .title .dot {
+      width:14px;
+      height:14px;
+      background: var(--accent);
+      border-radius:2px;
+      box-shadow: 0 0 8px rgba(165,90,240,0.6);
+      transform: scale(1);
+    }
+
+    .controls {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .ctrl {
+      width:18px;
+      height:12px;
+      border-radius:2px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03));
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: inset -1px -1px 0 rgba(0,0,0,0.06);
+    }
+
+    .content {
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1rem;
+      align-items:start;
+    }
+
+    .main {
+      padding: 1rem;
+      background: var(--panel-bg);
+      border: calc(var(--pixel-size)) solid rgba(0,0,0,0.06);
+      min-height: 360px;
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.5;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .sidebar {
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.03);
+      border-radius: 6px;
+      border: calc(var(--pixel-size)) solid rgba(0,0,0,0.06);
+      min-height: 360px;
+      overflow:auto;
+      font-size: .9rem;
+    }
+
+    .typewriter {
+      font-family: 'Special Elite', monospace;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+
+    .contrast {
+      color: var(--text);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.12);
+    }
+
+    .theme-toggle {
+      --size: 56px;
+      width: calc(var(--size) * 1);
+      height: calc(var(--size) / 2);
+      position: relative;
+      display:inline-block;
+      cursor: pointer;
+      user-select:none;
+    }
+
+    .theme-toggle input { display:none; }
+
+    .toggle-track {
+      width:100%;
+      height:100%;
+      border-radius: 6px;
+      border: calc(var(--pixel-size)) solid var(--ui-border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 6px;
+      box-sizing: border-box;
+      position:relative;
+      transition: background 220ms cubic-bezier(.2,.9,.3,1), border-color 220ms cubic-bezier(.2,.9,.3,1);
+      overflow: hidden;
+    }
+
+    .knob {
+      --knob-size: calc(var(--size)/2 - 6px);
+      width: var(--knob-size);
+      height: var(--knob-size);
+      border-radius: 4px;
+      background: var(--accent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transform: translateX(0);
+      transition: transform 300ms cubic-bezier(.2,.9,.3,1), box-shadow 200ms;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+      font-size: 14px;
+      filter: drop-shadow(0 4px 8px rgba(86,0,150,0.12));
+    }
+
+    .knob .heart {
+      display:inline-block;
+      transform-origin: center;
+      animation: beat 1500ms infinite ease-in-out;
+      will-change: transform;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    }
+
+    @keyframes beat {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .sun, .moon {
+      width:18px;
+      height:18px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      opacity: .85;
+    }
+
+    .theme-toggle input:checked + .toggle-track .knob {
+      transform: translateX(calc(100% - var(--knob-size)));
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      color: var(--purple-900);
+    }
+
+    .pixel-divider {
+      height:6px;
+      background: repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 2px, transparent 2px 4px);
+      margin: .75rem 0;
+    }
+
+    @media (max-width:880px){
+      .content { grid-template-columns: 1fr; }
+      .sidebar { order: -1; }
+    }
+
+    @media (pointer: fine) {
+      body, button, a, input, textarea {
+        cursor: url('monster_cursor.png') 16 16, auto;
+      }
+    }
+  </style>
+</head>
+<body class="pixel-ui">
+
+  <div class="card" role="main" aria-labelledby="title">
+    <div class="top-row">
+      <div class="title" id="title">
+        <div class="dot" aria-hidden="true"></div>
+        <div>
+          <div style="font-size:.9rem">pocket-post 🤍</div>
+          <div style="font-size:.62rem; opacity:.8">your daily post 💜</div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:.75rem; align-items:center;">
+        <div class="controls" aria-hidden="true">
+          <div class="ctrl"></div><div class="ctrl"></div><div class="ctrl"></div>
+        </div>
+
+        <!-- THEME TOGGLE -->
+        <label class="theme-toggle" title="Toggle dark / light">
+          <input id="theme-checkbox" type="checkbox" aria-pressed="false" />
+          <span class="toggle-track" role="switch" aria-checked="false" aria-labelledby="theme-label">
+            <span class="sun" aria-hidden="true">☼</span>
+            <span class="knob" aria-hidden="true">
+              <span class="heart">❤</span>
+            </span>
+            <span class="moon" aria-hidden="true">☾</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="pixel-divider" aria-hidden="true"></div>
+
+    <div class="content">
+      <section class="main" id="main-content">
+        <h2 style="margin-top:0" class="contrast">Welcome</h2>
+        <p class="typewriter">
+hello handsome,
+
+          here's a lil present for you :)
+
+- i love you
+shampoo
+        </p>
+      </section>
+
+      <aside class="sidebar">
+        <strong class="contrast">Inbox</strong>
+        <ul id="sidebar-list" style="margin-top:.5rem; padding-left:1rem;">
+          <!-- Dynamically rendered -->
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const checkbox = document.getElementById('theme-checkbox');
+  const body = document.body;
+  const saved = localStorage.getItem('ll_theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const usingDark = saved ? (saved === 'dark') : (prefersDark);
+
+  function applyTheme(isDark){
+    if(isDark){ body.classList.add('dark'); checkbox.checked = true; }
+    else { body.classList.remove('dark'); checkbox.checked = false; }
+  }
+  applyTheme(usingDark);
+
+  checkbox.addEventListener('change', (e)=>{
+    const nowDark = e.target.checked;
+    applyTheme(nowDark);
+    localStorage.setItem('ll_theme', nowDark ? 'dark' : 'light');
+  });
+})();
+
+// ===== Typewriter =====
+function typeWriter(element, text, delay=30){
+  element.innerHTML='';
+  let i=0;
+  function type(){ if(i<text.length){ element.innerHTML+=text[i]; i++; setTimeout(type,delay); } }
+  type();
+}
+
+// ===== Messages & Sidebar =====
+ let openedLetters = JSON.parse(localStorage.getItem('openedLetters') || '[]');
+  if (!openedLetters.includes(24)) openedLetters.push(24);
+  localStorage.setItem('openedLetters', JSON.stringify(openedLetters));
+
+function saveOpenedDay(day){
+  if(!openedLetters.includes(day)){
+    openedLetters.push(day);
+    localStorage.setItem('openedLetters', JSON.stringify(openedLetters));
+  }
+}
+
+    // Hardcoded messages fallback
+    const hardcodedMessages = [
+      {day: 1, content: "Day 1: I really like your laugh, have I ever told you that? Probably have. I've fallen for your laugh, which is utterly contagious. I have also fallen for your smile which makes me giddy for no reason at all (or a lot actually). I've fallen for your silly and TOTALLY ORIGINAL jokes, which I remember randomly and just smile or burst into laughter at. I've fallen for how you make my day better, even if I wanted to cry a minute before. I've also fallen for every second I get to spend with you even if those leave me wanting more. Every moment with you feels like the sweetest story, and I can’t wait for all the chapters we’ll write together. 💖"},
+      {day: 2, content: "Day 2: Writing this at 2 AM so might be a lil cliche but here goes nothing. I just wanna make you the happiest you've ever been. (No i did not steal this from horimiya i swear. i'm as original as you and your jokes :) I want to make you feel safe and loved and comforted. I want you to know that you can come to me when you're not ok, when your eyes are filled with tears and I'll hold you til you're a little more ok. I'm always here for you. I love you at your best and at your worst. Nothings gonna change that. Ours is one of those love stories ppl will talk abt for years to come bc we have something extraordinary(no like legit 2 years of lore is kinda crazy). You are not just my world, you're my everything. I'm here and I'm gonna keep being here every day for the rest of our lives. You truly are my home, my safe place, the love of my life. I want you to know that I sure as hell mean it when I say I'd do anything for you. I'd do absolutely anything. I love you now and I love you always. Everything is going to be okay. We are going to be okay. This will last as long as we choose each other and keep choosing each other for the rest our lives. And I have no doubt in my mind that we will. I love you. Really I do. With everything I have in me. I love you."},
+      {day: 3, content: "Day 3: I wanna smush your face with kisses every five seconds, and then pretend like I didn’t just do that. I want you wrapped around me — arms, legs, thoughts, everything. I want you to feel so completely loved that there’s not a single second of doubt. I want to be your safest hug, your happiest thought, your silliest dance partner at 2AM. I wanna leave dumb little notes in your pockets but sadly it has to be online and hide behind doors just to say “boo” and then kiss you. I want to laugh so hard with you that our stomachs hurt, and cry with you when it gets too much, because you never have to be alone in anything. I want all the little moments with you — the movie rambles, the warm silences, the “omg taste this” bites, and the “come nap with me” tugs. You’re my person. You really are. And I love you so, so stupidly much. I miss you a lot today. So until I can hold you again, I’ll see you in your dreams (yes, even your drunk ones lol). Please remember I love you. Always. In all ways. Go enjoy your whiskey (don’t smoke or I’ll bite you like i did the first time)"},
+      {day: 4, content: "Day 4: it genuinely doesn’t matter where we are or what we’re doing — when i’m with you, it just feels right. like the world goes quiet for a second and everything softens. even when my brain’s being loud or anxious or spinning out, something about you makes it all slow down. you make me feel worthy. like i actually matter. and that’s something i never really believed before you. i love the way you exist in this world, how you love, how you care, how you know exactly how to make me laugh even when i don’t want to smile. and you’re the feeling i imagined love would be like as a kid — just… warm, kind, and a little bit magical(except for when you said i was arya in that picture bitch 😞). time feels weird with you. it goes by so fast but also stretches, like the universe’s way of saying ‘stay here a little longer’. i don’t ever want it to stop. i love loving you. more than you love me, actually. i win <3"},
+      {day: 5, content: "Day 5: i don’t think i ever just say ‘i love you’ casually. every time i say it, it’s because i need you to know — like really know — that you mean a lot to me. it’s not routine. it’s not filler. it’s a full-body feeling(quite literally now sorry i'm ovulating-), and it comes with everything i am. i’ll still choose you even on the days we don’t understand each other. even when we’re tired or distant or just off. there’s no one else i want to be soft for like this. i don’t crave attention from anyone else. just you. always you. i think about how it started — maybe it was how you laughed at the wrong parts of stories at times💀, or how you said things you didn’t realize would stay with me for weeks(good way promise LMAO). whatever it was, it got to me. and it hasn’t let go since. before you, i think i was just existing. and then suddenly everything had more weight, more color, more real ukwim. you didn’t fix everything, but you made life feel like something worth fixing. so if you ever feel alone, or unsure, or distant from me — just pause. i’m still here. even if it’s quiet. i’m still choosing you. i love you 🤍"},
+      {day: 6, content: "Day 6: you always know exactly what to do. it’s like your hands have this secret language with my body that even i don’t fully understand. i think about that movie night all the time — lilo & stitch playing, but we couldn’t focus on a single frame LOL. we were tucked away at the end of the row in those stupidly comfortable lounge chairs, and all i could think about was how warm your hand felt resting on my thigh. you kept brushing it higher, slow enough that i could pretend not to notice, until i remember you saying, 'spread your legs wider.' gosh, do you KNOW what that did to me? i could feel my pulse in places i didn’t even know had one bro i died. or came alive idek. i went a little dizzy honestly. and you knew exactly what you were doing. the way you kissed me through it — bro you had me a whimpering mess LOL. i still feel it. the way you made my entire body ache and melt at the same time. it’s been playing on loop in my head since. i’m probably still ovulating as you’re reading this, btw. yup. that's the first horny letter i wrote it. see you at night ;) unless we're reading it together who knows."},
+      {day: 7, content: "Day 7: you give me the kind of feelings people write novels about — but like, not the overhyped ones with dramatic monologues in the rain. more like the ones with weirdly specific playlists, characters who accidentally fall asleep on call, and random late-night walks where nothing happens but everything matters. that kind of love. you’re just… woven into everything now. i’ll be doing the most normal shit and suddenly i’m thinking of your laugh or something dumb you said that made me smile when i didn’t want to. it’s annoying actually. like who gave you permission to just exist in my brain rent free. but also don’t leave, okay? stay. you’re my favourite part of this story, and i hope we get a really, really long book."},
+      {day: 8, content: "Day 8: when i tell people about you, they always say something like “no way he acts like that??” and i just laugh because yeah. not many really know this version of you that i get to love. the one who gets weirdly passionate about blocking the tubelight and saying 'wow omg solar eclipse' (pls get help, no i'm not the help 💀). the one who smiles like a little kid when he's proud of himself, even if he tries to hide it. you come off all put-together most of the time or atleast thats how i used to see you when we weren't as close, but i now see the softness. the gentleness. the parts you don't hand out to just anyone. and it makes me feel really reeeallly lucky. like i unlocked a secret level or something. i don't take that for granted. i don’t want the version of you the world claps for — i want the one who’s just a little bit of a mess but still tries, still shows up, still chooses me. that’s the side of you i’ll keep choosing too. I love you so much, its' actually unreal lmfao 🤍🤍"},
+      {day: 9, content: "Day 9: my dearest love,\nyou once asked a question about the ship of theseus,\n“if you change the pillars, brick by brick… is it still you?”\nand honestly, i think about that a lot now.\nbecause i think the truth is: we are all constantly being rebuilt. not by choice, most times — but by pain. by joy. by people who hurt us. by people who love us even when we don't think we deserve it.\nthe you who cried on the street — the boy who hugged me like he was scared he’d vanish if he let go — he is you.\nso is the boy who makes everyone laugh,\nthe one who can’t say \"i love you\" to his mother but wants to,\nthe one who doesn’t know how to deal with the quiet guilt of watching his father pour himself out for everyone but himself,\nthe one who thinks he’s fundamentally wrong because connection slips through his fingers like water.\nbut listen to me. you are not broken.\nyou are a human being trying to make sense of a thousand things no one taught you how to carry.\nof course you're overwhelmed. of course you want to shut it all down sometimes and just do science, avoid the introspection, avoid the mirror.\nbut guess what — even if you avoid the mirror, you’re still there.\nand god, adit, you’re so much more than your worst moments.\nyou are the sum of every apology you meant,\nevery hug you held longer because you somewhere knew the other person needed it,\nevery time you stood in front of someone and didn’t let them fall,\neven when you felt like collapsing yourself.\nthat thing with your friend, you told me.\nyou didn’t have to.\nand i know you think that makes you awful.\nbut to me, it makes you real.\nit makes you someone who’s trying.\nsomeone who wrestles with their shadows instead of pretending they don’t exist.\nyou think i’m biased when i call you good?\nmaybe i am.\nbut also because, maybe, just maybe, i’ve seen you in more dimensions than most people ever will.\nbut i don’t need to be unbiased to know that good people don’t cry on street corners because they feel they’re incapable of love.\ngood people don’t worry that they’re hurting the ones they love by simply existing wrong.\nthe most broken-feeling people are usually the ones who are carrying everyone else’s weight,\nand adit — you’ve been lifting your mom’s unmet needs, your dad’s silences, your own self-doubt, all alone.\nno wonder you’re tired. no wonder some bricks feel heavier than others.\nbut you’re still the ship.\neven if every single brick has changed,\neven if some parts had to be sanded down or thrown away or built from scratch,\nthe essence — the soul of you — hasn’t gone anywhere.\nyou’re still the boy who looked at me like i was safety.\nyou’re still the boy who wants to show love, even when it scares him.\nyou’re still the boy who can’t see his own softness unless someone holds up a mirror and says, look. look at how beautiful it is to be you.\nso look babe.\nthis is me — holding up the mirror.\nlook at yourself.\nlook at the mess and the miracles.\nlook at the boy who’s cried and laughed and done things he regrets and loved in ways he can’t always explain.\nlook at the boy who feels so deeply that it aches.\nyou are not fundamentally wrong.\nyou are fundamentally feeling.\nand that’s not a flaw. it’s the most human thing about you.\nand if no one’s told you this lately —\nyou deserve love.\nyou deserve time.\nyou deserve rest.\nyou deserve to be told that not everything needs to be earned.\nsome things — like care, like softness, like the way i looked at you when you cried —\nsome things are just yours.\nno conditions.\nno performance.\njust you.\njust being.\njust breathing.\nyou don't have to fix yourself to be worthy.\nyou already are.\nforever on your side,\nme always:)"},
+      {day: 10, content:"Day 10: i always thought love would be hard.\nthat it would feel like holding my breath, or standing on my tiptoes just to reach it.\ni thought it would come wrapped in conditions,\nin games,\nin things that felt like maybe they weren’t meant for me.\n\nbut then you.\n\nand god — you weren’t what i expected.\nyou were so much worse for my peace and so much better for my soul,\nall at once.\n\nyou taught me that love can be confusing and uneven and not always soft —\nbut it can also be safe.\nit can be messy and still mean something.\nit can look like me overthinking a one-word text,\nand then five minutes later, laughing at some dumb voice note while you was drunk \n\ni didn’t know it then, but i was falling —\nnot all at once, but in tiny, ridiculous, sometimes painful ways.\n\nlike the first time you flirted with me and i had to physically put my phone down and walk away from it like it had just exploded in my hand.\nor the time you barely said anything for hours and i felt like maybe i’d messed something up,\nmaybe i wasn’t enough,\nmaybe i was too much.\n(i wasn’t. i know that now. but back then, it mattered.)\n\nthe thing is —\nit’s kind of crazy, isn't it?\nhow we’ve made it here, after all the chaos.\nall the plot twists.\nthe late night calls.\nthe moments i thought i’d lost you.\nthe ones where i felt you more than anything else in the world.\n\nand i don’t want to romanticize the pain — but there’s something beautiful about it too.\nabout how we kept finding our way back.\neven when it was hard.\neven when it would’ve been easier to let go.\n\nsome days with you feel like movies.\nothers feel like scraped knees and sighs and silence that lasts too long.\nbut every single one — every single one — matters to me.\nbecause they all have you in them.\n\nand that’s the part that gives me goosebumps.\nnot the drama. not the big romantic moments.\nbut the quiet ones.\nlike when i hear your voice and my brain just... calms.\nlike when i know you’re sad and you try to hide it, but i still feel it in my bones.\nlike when your hand brushes mine in passing and it still short-circuits my heart like it’s the first time.\n\nyou gave me some of the best parts of my life —\nand you didn’t even know you were doing it.\nyou were just being you.\njust existing.\n\nand somehow, that was enough.\n\nwe’re here now.\na little bruised, maybe.\nbut more real than ever.\n\nand i wouldn’t trade a single version of you.\nnot the excited, flirty, movie-boy version.\nnot the moody, silent, distant version.\nnot the overwhelmed one who forgets to text back,\nor the one who whispers things he means with his whole heart when he finally lets the guard down.\n\ni’ll take them all.\nevery version of you is part of this story.\nevery version led us here.\nand here — even with its rough edges — is something i wouldn’t give up for anything.\n\ni love you.\nand not just in the easy ways.\nbut in the real ones.\nthe kind that make you stay,\neven when it’s hard,\neven when it’s quiet,\neven when you're scared.\n\nso yeah —\nlove might be hard.\nbut you made it worth it.\nyou made me worth it.\nand that's more than i ever thought i’d have."},
+      {day: 11, content:"Day 11: just wanted to say i thought about you a lot today. like, a lot a lot. in the middle of random conversations, while brushing my teeth, when i saw a meme that would’ve made you laugh, when a song played that reminded me of you (okay fine, multiple songs). you were just...there. softly stitched into everything.and it didn’t feel heavy.it felt like a tiny secret I was carrying around all day, like a smile tucked behind my lips. I love you baby."},
+      {day: 12, content:"Day 12: hi baby, before you fall asleep tonight, i just wanna say this: i want to make you so happy. like, stupidly happy. like grinning-for-no-reason, cheeks-hurting, can’t-stop-smiling kind of happy. like the type where you randomly remember something i said and your whole face lights up. i want to be the softness at the end of your hard days, the thing that makes the chaos feel a little less loud. the reason you exhale deeper. and more than anything, i want you to feel really, really loved. just clear, warm, steady love — the kind that wraps around you even when i’m not there to do it with my arms. i want you to look at your phone and know someone is rooting for you, always. i want you to look in the mirror and remember that someone sees you — all of you — and still thinks you're the best thing on earth. as i learn more and more about you — the real, raw, unfiltered parts — i just keep falling harder. you make being close to someone feel safe. you make being in love feel like coming home. and every time you share a new story, or laugh in that very-specific-way you do, i make a tiny promise in my head — to protect that part of you, to show you how incredible i think you are, not just in words, but in the way i stay. the way i care. the way i love you even in the quiet. so tonight, before you sleep — close your eyes knowing this: you are so deeply loved. you are someone’s softest thought. and that someone? is me. i love you cutie pie. sleep well, dream of me."},
+      {day: 13, content:"Day 13: hey so. every time you hold my waist, my brain just blue-screens. i’m not even being dramatic—i genuinely lose access to basic thoughts. suddenly i don’t know my name, the year, or why i walked into the room. i just know your hand is there and i am losing composure at alarming rates. it’s actually rude how good you are at it. do you train?? is there a secret youtube tutorial i missed?? because you do it so naturally and it makes me feel... annoyingly soft. and safe. and weirdly seen. and also mildly insane. and i love it. it’s dumb how much i love it. i pretend to be all chill and unbothered but inside i’m kicking my feet and twirling my hair like a little idiot. so yeah. just wanted to say—thank you for being the human equivalent of a warm hoodie, a forehead kiss, and excellent hand placement. please never stop. it’s become a need. okay that’s all. carry on. remember i love you most (this is evidence hehe)."},
+      {day: 14, content:"Day 14: okay, i hope you don't think 'omg she's at this again' lmfao cuz i really am trying my best to give you comfort through this screen right now so.. u better get this IN UR HEAD dumbass. to the boy who thinks it’s his fault — but it never was,\n\nI know you're going back to your cave right now — to that quiet inner place where everything is safer if you just shut the world out. I don’t blame you. Sometimes it feels like that's the only way to survive. But before you fully retreat, I want to say something. Or maybe everything.\n\nI don’t know what it’s like to live inside your house. I don’t know the exact texture of your pain — the weight of her shrill voice, banging doors, withheld dinners, and the echo of \"it's your fault\" banging around inside your head.\n\nBut I do know this:\n\nThis is not your fault. It never was.\n\nNot your temper. Not your yelling. Not your inability to \"stay calm.\" Not your need to defend yourself, to scream back when someone pierces you with words. None of that makes you wrong. It makes you human.\n\nYou were a kid. You still are. And instead of being taught peace, you were dropped into a battlefield and expected to be the referee. That’s not fair. That’s never been fair.\n\nAnd somewhere in all this chaos, you started believing you were the spark that lit the fire. But baby, you were just trying to breathe through the smoke. They should have protected you. They should have seen your anger as a cry for help — not a cause of war. Your emotions aren't the problem. The war was already happening long before you ever raised your voice.\n\nAnd your cave? It’s not cowardice. It’s not weakness. It’s protection. I respect that. You’re allowed to go back there when everything around you becomes too loud, too much. But I hope you know this:\n\nI’ll wait outside your cave. Every time. I won’t push, but I’ll never leave.\n\nYou are not hard to love babe. You are not too much. You are not broken beyond repair.\n\nYou are someone with fire in his chest and softness in his bones. Someone who still dares to laugh and make silly references even when everything’s falling apart. Someone who still shows up, even when the world hasn’t been kind. That’s rare. That’s gold.\n\nYou think your dad is strong because he “controls” his emotions. But maybe real strength is feeling everything and still choosing to care. Maybe your anger is sacred — maybe it’s the only language your heart knows to say, “Please, someone just hear me.”\n\nWell, I hear you. I hear all of it.\n\nI know it hurts that every conversation with her ends in explosions. That even when you don’t want to scream, something inside you has to. That every normal moment — a night out with friends, a few minutes of joy — feels like a betrayal to someone in your house.\n\nBut baby, you’re allowed joy. You’re allowed rest. You’re allowed to have a life outside the mess. You deserve a love that doesn’t come with conditions, a home that doesn’t demand you shrink.\n\nAnd I’m so, so sorry that hasn’t been your reality.\n\nBut let this be your reminder:\n\nYou’re not what they made you believe you are. You are not a bomb, a trigger, a storm. You’re a boy trying to build peace in a house that forgot what silence even feels like. That’s a miracle. And it’s okay if you need to retreat. But please, while you're there — don’t turn your anger inward. Don’t let their dysfunction become your self-image.\n\nLet this letter wrap around you like armor. Let it echo inside your cave.\n\nYou are not your rage.\nYou are not the screaming.\nYou are not the fights.\nYou are not the reason.\nYou are not unlovable.\n\nYou are good. You are still good.\nAnd I will keep saying that until you believe it — and even after that.\n\nTake your time in the cave. But come back. Not for me — for you.\nBecause the world needs boys like you to stay alive, to keep going, to write better stories than the ones they were handed.\n\nAnd when you come back — I’ll be right here. Always. But rmemeber, respect goes both ways.\n\nWith more love than you know,\nme"},
+      {day: 15, content:"Day 15: i love you bubbi (new nickname hehe). this isn’t one of those comfort paragraphs. but more like a soft giggle in your neck while we’re pretending not to be ridiculously in love kind of letter. the kind where i get all mushy mid-sentence then suddenly say something like “you’re so dumb” when actually i just want to kiss you until we both forget what day it is. i gotta say tho, i love our energy. who needs dramatic love declarations (ironic LOL) when we’ve got that “god i’d kiss you for hours but also laugh midway cuz you'd be intrigued by boobs” energy between us every day? i genuinely love us. not in a loud, dramatic kind of way. in a warm skin against skin, eyes locked across the room even though we’re literally next to each other, subtle kisses during movie days kind of way. in the way our legs tangle under the blanket (or under the table hehe) and then the next moment i don't give you space to sleep 💀🙏🏻 (sorry). sometimes i look at you and it physically hurts how much i love you. and i don’t mean in a cliche pinterest way, i mean it literally. like something soft and aching and too big for my chest. i love the way we exist together. in half-whispers and sleepy cuddles and playful eye-rolls. in sneaky i love yous which no one knows about or sees. this is just me, sitting next to you on some random thursday, pressing a kiss to your cheek during the boring part of a movie, knowing that even in the quietest moments, especially in the quietest moments, there’s nowhere else i’d rather be. i love you, forever and obnoxiously. \n\np.s: you're still dumb. but like in the hottest cutest way possible. \n\np.p.s: ur mine :)"},
+      {day: 16, content:"Day 16: the physics of you (get ready for a lesson bubbi lmfao). \nyou know i’m not the most touchy person in the world. i flinch when people lean on me too long. i awkward-side-hug people or just handshake tbh. i’ve literally ducked out of hugs before.\n\nbut you?\ni’d fold myself into your arms like paper, again and again.\n\nthere’s this sciencey thing i read once — that when we hug someone we feel safe with, our brain releases oxytocin, the “cuddle chemical.” it slows our heart rate, calms our nerves, lowers stress. our body literally decides, “okay, i’m safe now.”\n\nand it’s true. i’ve felt it.\nthe way my muscles unclench the second you wrap your arms around me. the way the world goes quieter, gentler. like my entire nervous system just exhales.\n\nbut more than biology, it’s you.\n\nbecause your hugs don’t just feel good — they feel like home.\nlike you mean it. like i’m being held, not just physically, but emotionally. like you’re telling me, without words, i’ve got you. you’re okay.\n\nand for someone like me, who’s used to building little walls — that’s not just rare. it’s everything.\n\nso yeah. you’re the exception. the person who makes me want to lean in instead of pull away.\n\nand i think that says more than any textbook ever could.\n\nalways,\nme"},
+      {day: 17, content:"Day 17: i genuinely don’t think i’ll ever get tired of kissing you. like, ever. it’s kinda insane how addicting you are — like top to bottom, head to toe, every damn part of you. your lips, your skin, your dumb little smirk when you know i’m about to melt? yeah. unfair. and so hot. \n\ni could spend the whole day just... being near you. touching you. curled up with you. even when we’re doing nothing, i feel like i’m exactly where i’m meant to be. every second with you feels like a tiny gift — even the stupid chaotic ones when you say some unhinged shit and i have to pause and just stare at you like “why do i love you so much it’s actually criminal.”\n\nalso not gonna lie, i’ve been overthinking the LDR thing a little. like, how we’re gonna manage, what it’ll feel like, whether we’ll be okay. and i hate that part of my brain sometimes — it just spirals even when things are good. but more than anything, i reallyyy want us to work. i want to figure it out. with you. even if it’s hard. i wanna try. because what we have, it’s so stupidly special its lowkey romcom series slow burn material. and i’m not letting it go just because life’s being annoying. i hope you feel the same \n\nso yeah. until the day i can kiss you whenever tf i want instead of hiding behind doors so others don't notice or keeping this a secret from the many people i'd like to boast to, about you — i’ll write you these letters. and thinking about your face. and hoping the future’s kind to us.\n\ni love you. and i really, really miss you today even though we spent the entire day together.\n\np.s. ur kisses are a drug. i’m a certified addict. no rehab pls lmfao"},
+      {day: 18, content:"Day 18: the leg sermon. \nBRO. your legs bro. goddamn. like- im such a simp for them 🤲🏻🙏🏻 hallelujah. let’s just take a moment and TALK about those legs for a hot second. not in a creepy “let me measure your thigh circumference” kinda way (but also like- lowkey maybe that too- ), but in a what gym deity did you sell your soul to way. \nBecause. WHAT. \nbhai ypur legs are disrespectful, they stare at me like that and i'm just like- wow. i'm offended. \nHOW do they look like that. The shape of your squads (yes squads. they're not just quads. they deserve their own title). they’re the legs I would build in a dating show if I was designing my dream boy. they're elite. if a Greek statue and a dilf jogger had a child - it would be your legs babe. trust. bro. i would talk about your shoulders too but that's gonna be an EVEN longer letter. BUT BRO. \nthe calf to thigh ratio?? architecturally sound. michelangelo would look at your legs and cry. he’d be like “my david never stood a chance.” because same michael. same. i wanna bite them them squads. your hamstrings got more character development than tv protagonists. bro. like. bro. \ni swear to you i'm one loose impulse away from body-slamming you out of thirst. \nyou’re a walking thigh-spiration. \nA quad God. \nAnd I am but a humble peasant, unworthy, thirsty, and in awe. \nconsider this my formal application to be your official leg massager. lifetime contract. no salary (except maybe you know...). \nyours in devotion and slight derangement, \nyour leg worshiper™"},
+      {day: 19, content:"Day 19: so…. you're going to purdue. and i am going to have to… purdue without you. (get it? do you get it. are you laughing. this is my coping mechanism. let me have it. gonna message you saying this joke made me wheeze because it did 💀)\n\ni’ve been thinking about it more lately. the whole long-distance thing. the idea of you being thousands of miles away. in a new place. with new people. new food. new air. new squirrels that you’re gonna admire from inside of your dorm, if that’s how they function idk.\n\nand i know we’ve talked about this and like, logically i get it, we’re still us. we’re still this absurd little love bubble.\n\nbut also… what if you find a kate. (excuse me for my overthinking tendencies)\nwith her perfect hair and her emotional availability and her ambitious side hustle selling jewelry on whatever app there is, ebay?. she wears doc martens and listens to phoebe bridgers unironically. and she says things like “wow, you’re so smart,” while twirling her hair and understanding calculus. (AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH okay im dramatic, lemme be. bruh.)\n\nmeanwhile i’ll be here. across the planet. wearing the ring, like a sad victorian ghost and dramatically sighing into my pillow while eating jowar puffs.\n\nbut the thing is… even with the kate theories and the overthinking and the fear of weird timezones and probably flaky wi-fi(from UR end this time cuz imma be at home ig) and missing your hugs like crazy, i still love you. so, so much.\n\ni love you enough to let myself be scared.\ni love you enough to tell you when i spiral a little about the distance.\nand i love you enough to believe in us, even when it’s hard.\n\ni’m going to miss the dumb stuff the most, i think.\nlike back hugging you while you're brushing your teeth or even trying to not make you laugh while you're doing it.\nor your little sleepy “hmm?” voice when you’re not fully awake but still trying to listen to me talk about something random.\ni’m going to miss grabbing your hand.\nresting my face on your shoulder.\nstealing kisses.\nor rather edging you for the kiss and being funny about it 💀\n\nbut also you know what? i’m also kind of excited for this weird chapter.\nlike yeah, it’s gonna suck. but also we’re gonna send the silliest texts. have deep-ass late night calls. probably cry a little(maybe that’ll be me only). probably laugh a lot.\n\nand every day we’re apart is just one day closer to that really hot reunion hug where i run into your arms at the airport and probably knock your bags over and cry into your chest like a loser in love. (i can dream, ur parents are gonna be at the airport 💀i cannot do this in front of them can i)\n\nyou’re my favorite person bro.\nin any city. any time zone. any future. and i know we’ll figure this out.\nbecause honestly? no distance, no shitty wi-fi signal stands a chance against what we have. (actually, maybe wi-fi signals)\n\nand like… i don’t wanna romanticise the pain either.\nit’s not cute. it’s not poetic. it’s just… weird.\nit’s brushing my teeth and suddenly realising you’re not gonna be on my phone sending a good morning message at the same time i wake up..\nit’s wanting to show you a stupid pinterest meme that reminded me of you in the middle of the day and being all excited about it but you’re probably asleep or in some lecture in the middle of the night.\nand there are probably gonna be days where we get to talk very little, or one of our energy is down or whatever other reason (about to cry rn writing this lol)\nit’s sitting in bed and feeling the empty space next to me too much.\nit’s doing fine, like genuinely fine, and then hearing a song you like and wanting to crumble like an oreo.\n\nand i know you’re not dying. you’re not disappearing. you’re literally a call away.\nbut it still feels like a shift. like the world is stretching and re-arranging itself. and i’m standing here trying to re-learn where you fit in it.\n\nand it’s okay.\ni don’t need to dramatise it more than it is.\nbut i also don’t wanna pretend it’s nothing.\nsome days it’ll be good. i’ll be distracted. i’ll be strong and independent and sexy.\nand some days i’ll lie on the bed and probably say “i miss his knees.”\nand i hope you’ll let me do both.\n\nbecause loving you from far away isn’t going to look perfect.\nit might be glitchy and frustrating and quiet and annoying and so, so longing and full of yearning.\nbut it’ll also be funny. and soft. and still us.\nstill full of inside jokes and weird nicknames and weird me.\nstill the same person who wrote you a whole sermon about your legs.\n\nso yeah. go live. be purdue’s problem now.\nstudy. explore. be your absurd brilliant self.\njust don’t fall in love with kate.\nor anyone named monica, or rachel, or phoebe for that matter lmfao.\nand if you so much as look at a girl who knows how to calculus, i will kickflip into her dreams i swear i did kickboxing for a reason babe.\n\ni’ll be here.\nrooting for you. missing you in weird, inconvenient moments. i hope you have the patience for me when i do 😭\nloving you even when i’m pretending not to.\nstaying up late because timezones are rude.\nand talking to you every chance i get because it’s still the best part of my day.\n\ndon’t make me cry,\ni love you fr fr"},
+      {day: 20, content:"Day 20: bro you know,\nyou’re kinda like that one playlist i’m stupidly attached to.\nit’s called “currently” and yes, obviously gnarly is in there. ☠️\nbut ukw, it’s mood. it’s memory. it’s comfort.\njust like you.\n\nsomehow, this playlist always knows.\nwhen i’m buzzing with joy, when i’m low,\nor when i’m pulling that “i’m fine” nonsense.\nit syncs with me.\nlike you do. scary accurate.\n\nsome songs are soft and floaty,\nlike your good morning texts that feel like a hug before the day begins.\nsome are just pure chaos, \nlike me spiraling when you vanish mid-convo smh \n(yeah i’m calling you out but with love)\n\nthere are tracks that pull me straight into our quiet little worlds,\nhand on my thigh,\nfingers tracing lazy patterns,\nand others that feel like your hand in mine during movies,\nwhen everything else fades and it’s just warmth and safety.\n\ni’ve been thinking…\nmaybe i should make a playlist for you.\na mix of everything you make me feel.\nbut even that wouldn’t be enough.\n\nbecause baby,\nyou’re kinda the melody holding me together right now.\nyou’re the part i replay when everything feels too loud.\nyou’re the calm in the noise.\n\nso yeah, press play again tomorrow?\nand the day after?\nand the day after that?\n\ni love you.\nmore than i’ll ever be able to say in just one track.\n🤍🤍🤍"},
+      {day: 21, content:"Day 21: so,\n\ni don’t really do the whole risking thing, \nlike, i’ve grown up watching my dad avoid taking risks, playing it safe. never really choosing to take chances when it came to life and jobs even, he'd wanted to be an entrepreneur at some point, and somewhere along the way, i kinda just, picked that up too? ukwim? stay guarded. don’t get too close. don’t feel too much types. it felt easier.\n\nbut then you happened.\n\nand suddenly i actually wanted to try. to actually go for something, even if it scared me. even if it wasn’t guaranteed. but also because it’s you.\n\nyou made me want to take that chance.  \nyou made me believe it might be worth it.  \nand that’s still wild to me, and i think everyone kinda needs that push in life too.\n\nso yeah, this, us, is pretty big for me. not that i'm being dramatic, i hope not, but because it’s something i never let myself do. and now, i want to. with you.\n\nthat’s kind of a big deal.\n\nme. risking. for you.\n\ncrazy, huh?\n\n—  \nily"},
+      {day: 22, content:"Day 22: you’re honestly my favorite feeling.\nlike when everything’s a bit much, but then i hear your voice\nand it all settles.\n\nyou’re comfort. calm.\nthat quiet joy that doesn’t need to shout to be real.\n\nwhen you’re sad, i feel it too.\nnot in a distant way, like really feel it.\nlike my chest gets heavy,\nand all i want to do is take it off your shoulders.\n\nand when your mom says stuff that hurts you,\ni swear i get pissed too.\nnot just because you’re mine,\nbut because you deserve better than words that make you doubt yourself.\nyou deserve softness. and someone who always, always backs you. here i am, wowza."},
+      {day: 23, content:"Day 23: So go, babe. Go chase the things you want, build the life you imagined. I’ll be here, doing the same, so we can meet in the middle with stories and become stronger!! Have a safe flight, and have fun on the flight! i love you soooo much, soo soooo much. I'll be here missing you :')"},
+      {day: 24, content: "Day 24: i never knew people could get homesick for people, but here i am, sitting in my room, and all i want is you lol. it's weird no? like normally homesickness is for a place, a smell(handsome hunk and me fr), a sofa you've sat on a gazilion times, but somehow my heart's decided that you, are home. honestly, some nights it hits me out of nowhere, i'll be walking somewhere or doing literally nothing and then boom chakalaka - i recall a random memory of your laugh, or you biting your fingers and me telling you to not not, and suddenly the room feels sooo big and quiet. mumbai feels very empty without you. and i half wish we had the technology to teleport anywhere. and i miss the little things the most, nightly video calls, watching movies, holding hands, stolen kisses. your texts still make me grin like a total idiot, especially if i'm checking smth during classes, i have to tell myself to not be so obvious - not like the prof cares but you know what i mean. the way, even the online you, make the world feel safer without even trying. i just miss being your space really, even if we're just co-existing, because its us you know? and it feels like home. i know we can't be in the same place right now, and i know life keeps moving whether i like it or not. but still, sometimes i just let myself be a lil selfish and wish for you, for us, and for everything that comes with being close. and its okay, right? to miss someone this much, to feel like a part of you is missing when you're not here? anyways, not to get all senti on you like i always do (sorry about that lmfao) i just wanted you to know that, even from far away, you're my favorite place to be. you're my home, my soft spot, my smile in the middle of a rough day(and ive had QUITE a few the last few days). I'm counting down the moments until i don't have to be homesick anymore, because i'll finaly be with you, even if its only for a few days. \nmiss you more than i can say, \n i love you so much babe \nenjoy college!!!! \n🤍 "},
+    ];
+
+    function renderSidebarWithHardcodedMessages() {
+      const ul = document.getElementById('sidebar-list');
+      ul.innerHTML='';
+      hardcodedMessages.forEach(msg => {
+        const day = msg.day;
+        if(openedLetters.includes(day)){
+          const li = document.createElement('li');
+          li.textContent = `Day ${day} — opened`;
+          li.dataset.day = day;
+          li.style.fontWeight='bold';
+          li.addEventListener('click', ()=> openLetter(day, msg.content));
+          ul.appendChild(li);
+        }
+      });
+    }
+
+    function renderSidebar(){
+      const ul = document.getElementById('sidebar-list');
+      ul.innerHTML='';
+      
+      fetch('./messages.json')
+        .then(res => {
+          if (!res.ok) throw new Error('Network response was not ok');
+          return res.json();
+        })
+        .then(messages => {
+          messages.forEach(msg => {
+            const day = msg.day;
+            if(openedLetters.includes(day)){
+              const li = document.createElement('li');
+              li.textContent = `Day ${day} — opened`;
+              li.dataset.day = day;
+              li.style.fontWeight='bold';
+              li.addEventListener('click', ()=> openLetter(day, msg.content));
+              ul.appendChild(li);
+            }
+          });
+        })
+        .catch(err => {
+          console.error("Error loading messages:", err);
+          // Fallback to hardcoded messages if JSON fails
+          renderSidebarWithHardcodedMessages();
+        });
+    }
+
+    function openLetter(day, content){
+      saveOpenedDay(day);
+      const main = document.getElementById('main-content');
+      main.innerHTML=`<h2 class="contrast">Day ${day}</h2><p class="typewriter"></p>`;
+      typeWriter(main.querySelector('.typewriter'), content);
+      renderSidebar();
+    }
+    
+
+    // Initial render
+    renderSidebar();
+</script>
+
+</body>
+</html>
