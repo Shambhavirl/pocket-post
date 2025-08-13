@@ -380,31 +380,7 @@ function saveOpenedDay(day){
       const ul = document.getElementById('sidebar-list');
       ul.innerHTML='';
       
-      fetch('./messages.json')
-        .then(res => {
-          if (!res.ok) throw new Error('Network response was not ok');
-          return res.json();
-        })
-        .then(messages => {
-          messages.forEach(msg => {
-            const day = msg.day;
-            if(openedLetters.includes(day)){
-              const li = document.createElement('li');
-              li.textContent = `Day ${day} — opened`;
-              li.dataset.day = day;
-              li.style.fontWeight='bold';
-              li.addEventListener('click', ()=> openLetter(day, msg.content));
-              ul.appendChild(li);
-            }
-          });
-        })
-        .catch(err => {
-          console.error("Error loading messages:", err);
-          // Fallback to hardcoded messages if JSON fails
-          renderSidebarWithHardcodedMessages();
-        });
-    }
-
+     
     function openLetter(day, content){
       saveOpenedDay(day);
       const main = document.getElementById('main-content');
@@ -419,4 +395,5 @@ function saveOpenedDay(day){
 </script>
 
 </body>
+
 </html>
